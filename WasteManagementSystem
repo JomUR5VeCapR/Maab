@@ -1,0 +1,312 @@
+
+import java.security.SecureRandom;
+import java.util.*; // Import all classes from the java.util package
+import java.io.*;  // Import all classes from the java.io package
+import javax.swing.*;  // Import all classes from the javax.swing package
+import java.util.concurrent.*;  // Import all classes from the java.util.concurrent package
+
+
+public class WasteManagementSystem {
+
+    public static void main(String[] args) {
+        MainMenu mainMenu = new MainMenu();
+        mainMenu.displayMenu();
+    }
+}
+
+class MainMenu {
+    private AccountManagement accountManagement = new AccountManagement();
+    private WasteCollection wasteCollection = new WasteCollection();
+    private BillingServices billingServices = new BillingServices();
+
+    public void displayMenu() {
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            System.out.println("Main Menu:");
+            System.out.println("1. Account Management");
+            System.out.println("2. Waste Collection Scheduling");
+            System.out.println("3. Billing Services");
+            System.out.println("4. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = getIntInput(scanner, 1, 4);
+            switch (choice) {
+                case 1:
+                    accountManagement.displayMenu();
+                    break;
+                case 2:
+                    wasteCollection.displayMenu();
+                    break;
+                case 3:
+                    billingServices.displayMenu();
+                    break;
+                case 4:
+                    System.exit(0);
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    static int getIntInput(Scanner scanner, int min, int max) {
+        while (true) {
+            try {
+                int input = Integer.parseInt(scanner.nextLine());
+                if (input >= min && input <= max) {
+                    return input;
+                } else {
+                    System.out.println("Input out of range. Please enter a number between " + min + " and " + max + ".");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a number.");
+            }
+        }
+    }
+}
+
+class AccountManagement {
+    private Map<String, String> accounts = new HashMap<>();
+
+    public void displayMenu() {
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            System.out.println("Account Management Menu:");
+            System.out.println("1. Create Account");
+            System.out.println("2. Update Account");
+            System.out.println("3. Delete Account");
+            System.out.println("4. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = MainMenu.getIntInput(scanner, 1, 4);
+            switch (choice) {
+                case 1:
+                    createAccount(scanner);
+                    break;
+                case 2:
+                    updateAccount(scanner);
+                    break;
+                case 3:
+                    deleteAccount(scanner);
+                    break;
+                case 4:
+                    return;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void createAccount(Scanner scanner) {
+        System.out.print("Enter your name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter your address: ");
+        String address = scanner.nextLine();
+        accounts.put(name, address);
+        System.out.println("Account created successfully.");
+    }
+
+    private void updateAccount(Scanner scanner) {
+        System.out.print("Enter your name: ");
+        String name = scanner.nextLine();
+        if (accounts.containsKey(name)) {
+            System.out.print("Enter your new address: ");
+            String address = scanner.nextLine();
+            accounts.put(name, address);
+            System.out.println("Account updated successfully.");
+        } else {
+            System.out.println("Account not found.");
+        }
+    }
+
+    private void deleteAccount(Scanner scanner) {
+        System.out.print("Enter your name: ");
+        String name = scanner.nextLine();
+        if (accounts.containsKey(name)) {
+            accounts.remove(name);
+            System.out.println("Account deleted successfully.");
+        } else {
+            System.out.println("Account not found.");
+        }
+    }
+}
+
+class WasteCollection {
+    private Map<String, PickupSchedule> pickupSchedules = new HashMap<>();
+    private Random random = new SecureRandom();
+
+    public void displayMenu() {
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            System.out.println("Waste Collection Scheduling Menu:");
+            System.out.println("1. Schedule Pickup");
+            System.out.println("2. Cancel Pickup");
+            System.out.println("3. View Pickup Schedule");
+            System.out.println("4. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = MainMenu.getIntInput(scanner, 1, 4);
+            switch (choice) {
+                case 1:
+                    schedulePickup(scanner);
+                    break;
+                case 2:
+                    cancelPickup(scanner);
+                    break;
+                case 3:
+                    viewPickupSchedule(scanner);
+                    break;
+                case 4:
+                    return;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void schedulePickup(Scanner scanner) {
+        System.out.print("Enter days of the week (comma separated, max 3 days): ");
+        String days = scanner.nextLine();
+        System.out.print("Enter time for collection: ");
+        String time = scanner.nextLine();
+        String code = generateCode();
+        pickupSchedules.put(code, new PickupSchedule(days, time));
+        System.out.println("Pickup scheduled successfully. Your code is: " + code);
+    }
+
+    private void cancelPickup(Scanner scanner) {
+        System.out.print("Enter your 3-digit code: ");
+        String code = scanner.nextLine();
+        if (pickupSchedules.containsKey(code)) {
+            pickupSchedules.remove(code);
+            System.out.println("Pickup canceled successfully.");
+        } else {
+            System.out.println("Invalid code.");
+        }
+    }
+
+    private void viewPickupSchedule(Scanner scanner) {
+        System.out.print("Enter your 3-digit code: ");
+        String code = scanner.nextLine();
+        if (pickupSchedules.containsKey(code)) {
+            PickupSchedule schedule = pickupSchedules.get(code);
+            System.out.println("Scheduled Days: " + schedule.getDays());
+            System.out.println("Scheduled Time: " + schedule.getTime());
+        } else {
+            System.out.println("Invalid code.");
+        }
+    }
+
+    private String generateCode() {
+        return String.format("%03d", random.nextInt(1000));
+    }
+
+    private class PickupSchedule {
+        private String days;
+        private String time;
+
+        public PickupSchedule(String days, String time) {
+            this.days = days;
+            this.time = time;
+        }
+
+        public String getDays() {
+            return days;
+        }
+
+        public String getTime() {
+            return time;
+        }
+    }
+}
+
+class BillingServices {
+    private Map<String, BillingStatement> billingStatements = new HashMap<>();
+    private Random random = new SecureRandom();
+
+    public void displayMenu() {
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            System.out.println("Billing Services Menu:");
+            System.out.println("1. Pay Bill");
+            System.out.println("2. View Billing Statement");
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = MainMenu.getIntInput(scanner, 1, 3);
+            switch (choice) {
+                case 1:
+                    payBill(scanner);
+                    break;
+                case 2:
+                    viewBillingStatement(scanner);
+                    break;
+                case 3:
+                    return;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void payBill(Scanner scanner) {
+        System.out.print("Enter amount to pay: ");
+        double amount = getDoubleInput(scanner, 0, Double.MAX_VALUE);
+        String code = generateCode();
+        billingStatements.put(code, new BillingStatement(amount));
+        System.out.println("Bill paid successfully. Your code is: " + code);
+        startTimer(3, "Transaction complete. Returning to menu.");
+    }
+
+    private void viewBillingStatement(Scanner scanner) {
+        System.out.print("Enter your 3-digit code: ");
+        String code = scanner.nextLine();
+        if (billingStatements.containsKey(code)) {
+            BillingStatement statement = billingStatements.get(code);
+            System.out.println("Billing Amount: " + statement.getAmount());
+            System.out.println("Billing Date: " + statement.getDate());
+        } else {
+            System.out.println("Invalid code.");
+        }
+    }
+
+    private String generateCode() {
+        return String.format("%03d", random.nextInt(1000));
+    }
+
+    private double getDoubleInput(Scanner scanner, double min, double max) {
+        while (true) {
+            try {
+                double input = Double.parseDouble(scanner.nextLine());
+                if (input >= min && input <= max) {
+                    return input;
+                } else {
+                    System.out.println("Input out of range. Please enter a number between " + min + " and " + max + ".");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+            }
+        }
+    }
+
+    private void startTimer(int seconds, String message) {
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.schedule(() -> {
+            System.out.println(message);
+            scheduler.shutdown();
+        }, seconds, TimeUnit.SECONDS);
+    }
+
+    private class BillingStatement {
+        private double amount;
+        private Date date;
+
+        public BillingStatement(double amount) {
+            this.amount = amount;
+            this.date = new Date();
+        }
+
+        public double getAmount() {
+            return amount;
+        }
+
+        public Date getDate() {
+            return date;
+        }
+    }
+}
